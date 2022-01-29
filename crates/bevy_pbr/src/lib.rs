@@ -119,11 +119,7 @@ impl Plugin for PbrPlugin {
                     .after(TransformSystem::TransformPropagate)
                     .after(VisibilitySystems::CalculateBounds)
                     .after(SimulationLightSystems::UpdateDirectionalLightFrusta)
-                    .after(SimulationLightSystems::UpdatePointLightFrusta)
-                    // NOTE: This MUST be scheduled AFTER the core renderer visibility check
-                    // because that resets entity Visib for the first view
-                    // which would override any results from this otherwise
-                    .after(VisibilitySystems::CheckVisibility),
+                    .after(SimulationLightSystems::UpdatePointLightFrusta),
             );
 
         app.world
