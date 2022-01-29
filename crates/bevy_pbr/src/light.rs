@@ -7,7 +7,7 @@ use bevy_render::{
     camera::{Camera, CameraProjection, OrthographicProjection},
     color::Color,
     primitives::{Aabb, CubemapFrusta, Frustum, Sphere},
-    view::{ComputedVisibility, RenderLayers, Visible, VisibleEntities},
+    view::{RenderLayers, Visible, VisibleEntities},
 };
 use bevy_transform::components::GlobalTransform;
 use bevy_window::Windows;
@@ -702,10 +702,9 @@ pub fn check_light_mesh_visibility(
         &mut VisibleEntities,
         Option<&RenderLayers>,
     )>,
-    mut visible_entity_query: Query<
+    visible_entity_query: Query<
         (
             Entity,
-            &mut ComputedVisibility,
             Option<&RenderLayers>,
             Option<&Aabb>,
             Option<&GlobalTransform>,
@@ -713,7 +712,7 @@ pub fn check_light_mesh_visibility(
         (Without<NotShadowCaster>, With<Visible>),
     >,
 ) {
-    // Directonal lights
+    // Directional lights
     for (directional_light, frustum, mut visible_entities, maybe_view_mask) in
         directional_lights.iter_mut()
     {
@@ -726,8 +725,7 @@ pub fn check_light_mesh_visibility(
 
         let view_mask = maybe_view_mask.copied().unwrap_or_default();
 
-        for (entity, mut computed_visibility, maybe_entity_mask, maybe_aabb, maybe_transform) in
-            visible_entity_query.iter_mut()
+        for (entity, maybe_entity_mask, maybe_aabb, maybe_transform) in visible_entity_query.iter()
         {
             let entity_mask = maybe_entity_mask.copied().unwrap_or_default();
             if !view_mask.intersects(&entity_mask) {
@@ -740,8 +738,6 @@ pub fn check_light_mesh_visibility(
                     continue;
                 }
             }
-
-            computed_visibility.is_visible = true;
             visible_entities.entities.push(entity);
         }
 
@@ -775,13 +771,8 @@ pub fn check_light_mesh_visibility(
                     radius: point_light.range,
                 };
 
-                for (
-                    entity,
-                    mut computed_visibility,
-                    maybe_entity_mask,
-                    maybe_aabb,
-                    maybe_transform,
-                ) in visible_entity_query.iter_mut()
+                for (entity, maybe_entity_mask, maybe_aabb, maybe_transform) in
+                    visible_entity_query.iter()
                 {
                     let entity_mask = maybe_entity_mask.copied().unwrap_or_default();
                     if !view_mask.intersects(&entity_mask) {
@@ -800,12 +791,10 @@ pub fn check_light_mesh_visibility(
                             .zip(cubemap_visible_entities.iter_mut())
                         {
                             if frustum.intersects_obb(aabb, &model_to_world) {
-                                computed_visibility.is_visible = true;
                                 visible_entities.entities.push(entity);
                             }
                         }
                     } else {
-                        computed_visibility.is_visible = true;
                         for visible_entities in cubemap_visible_entities.iter_mut() {
                             visible_entities.entities.push(entity)
                         }

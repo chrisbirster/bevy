@@ -121,7 +121,7 @@ impl Plugin for PbrPlugin {
                     .after(SimulationLightSystems::UpdateDirectionalLightFrusta)
                     .after(SimulationLightSystems::UpdatePointLightFrusta)
                     // NOTE: This MUST be scheduled AFTER the core renderer visibility check
-                    // because that resets entity ComputedVisibility for the first view
+                    // because that resets entity Visib for the first view
                     // which would override any results from this otherwise
                     .after(VisibilitySystems::CheckVisibility),
             );

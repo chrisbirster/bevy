@@ -10,6 +10,7 @@ use bevy_ecs::{
 };
 use bevy_math::{Mat4, Size};
 use bevy_reflect::TypeUuid;
+use bevy_render::view::{Visible, VisibleEntities};
 use bevy_render::{
     mesh::{GpuBufferInfo, Mesh},
     render_asset::RenderAssets,
@@ -18,10 +19,11 @@ use bevy_render::{
     render_resource::{std140::AsStd140, *},
     renderer::{RenderDevice, RenderQueue},
     texture::{BevyDefault, GpuImage, Image, TextureFormatPixelInfo},
-    view::{ComputedVisibility, ViewUniform, ViewUniformOffset, ViewUniforms},
+    view::{ViewUniform, ViewUniformOffset, ViewUniforms},
     RenderApp, RenderStage,
 };
 use bevy_transform::components::GlobalTransform;
+use bevy_utils::HashSet;
 
 #[derive(Default)]
 pub struct MeshRenderPlugin;
@@ -84,30 +86,33 @@ pub fn extract_meshes(
     mut commands: Commands,
     mut previous_caster_len: Local<usize>,
     mut previous_not_caster_len: Local<usize>,
+    visible_entities_query: Query<&VisibleEntities>,
     caster_query: Query<
         (
             Entity,
-            &ComputedVisibility,
             &GlobalTransform,
             &Handle<Mesh>,
             Option<&NotShadowReceiver>,
         ),
-        Without<NotShadowCaster>,
+        (Without<NotShadowCaster>, With<Visible>),
     >,
     not_caster_query: Query<
         (
             Entity,
-            &ComputedVisibility,
             &GlobalTransform,
             &Handle<Mesh>,
             Option<&NotShadowReceiver>,
         ),
-        With<NotShadowCaster>,
+        (With<NotShadowCaster>, With<Visible>),
     >,
 ) {
+    let visible_entities: HashSet<Entity> = visible_entities_query
+        .iter()
+        .flat_map(|v| v.entities.clone())
+        .collect();
     let mut caster_values = Vec::with_capacity(*previous_caster_len);
-    for (entity, computed_visibility, transform, handle, not_receiver) in caster_query.iter() {
-        if !computed_visibility.is_visible {
+    for (entity, transform, handle, not_receiver) in caster_query.iter() {
+        if !visible_entities.contains(&entity) {
             continue;
         }
         let transform = transform.compute_matrix();
@@ -131,8 +136,8 @@ pub fn extract_meshes(
     commands.insert_or_spawn_batch(caster_values);
 
     let mut not_caster_values = Vec::with_capacity(*previous_not_caster_len);
-    for (entity, computed_visibility, transform, handle, not_receiver) in not_caster_query.iter() {
-        if !computed_visibility.is_visible {
+    for (entity, transform, handle, not_receiver) in not_caster_query.iter() {
+        if !visible_entities.contains(&entity) {
             continue;
         }
         let transform = transform.compute_matrix();

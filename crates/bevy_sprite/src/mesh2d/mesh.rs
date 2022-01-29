@@ -6,6 +6,7 @@ use bevy_ecs::{
 };
 use bevy_math::{Mat4, Size};
 use bevy_reflect::TypeUuid;
+use bevy_render::view::{Visible, VisibleEntities};
 use bevy_render::{
     mesh::{GpuBufferInfo, Mesh},
     render_asset::RenderAssets,
@@ -14,10 +15,11 @@ use bevy_render::{
     render_resource::{std140::AsStd140, *},
     renderer::{RenderDevice, RenderQueue},
     texture::{BevyDefault, GpuImage, Image, TextureFormatPixelInfo},
-    view::{ComputedVisibility, ExtractedView, ViewUniform, ViewUniformOffset, ViewUniforms},
+    view::{ExtractedView, ViewUniform, ViewUniformOffset, ViewUniforms},
     RenderApp, RenderStage,
 };
 use bevy_transform::components::GlobalTransform;
+use bevy_utils::HashSet;
 
 /// Component for rendering with meshes in the 2d pipeline, usually with a [2d material](crate::Material2d) such as [`ColorMaterial`](crate::ColorMaterial).
 ///
@@ -91,11 +93,16 @@ bitflags::bitflags! {
 pub fn extract_mesh2d(
     mut commands: Commands,
     mut previous_len: Local<usize>,
-    query: Query<(Entity, &ComputedVisibility, &GlobalTransform, &Mesh2dHandle)>,
+    visible_entities_query: Query<&VisibleEntities>,
+    query: Query<(Entity, &GlobalTransform, &Mesh2dHandle), With<Visible>>,
 ) {
+    let visible_entities: HashSet<Entity> = visible_entities_query
+        .iter()
+        .flat_map(|v| v.entities.clone())
+        .collect();
     let mut values = Vec::with_capacity(*previous_len);
-    for (entity, computed_visibility, transform, handle) in query.iter() {
-        if !computed_visibility.is_visible {
+    for (entity, transform, handle) in query.iter() {
+        if !visible_entities.contains(&entity) {
             continue;
         }
         let transform = transform.compute_matrix();

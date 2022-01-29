@@ -19,19 +19,6 @@ use crate::{
 #[reflect(Component)]
 pub struct Visible;
 
-/// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
-#[derive(Component, Clone, Reflect, Debug)]
-#[reflect(Component)]
-pub struct ComputedVisibility {
-    pub is_visible: bool,
-}
-
-impl Default for ComputedVisibility {
-    fn default() -> Self {
-        Self { is_visible: true }
-    }
-}
-
 /// Use this component to opt-out of built-in frustum culling for Mesh entities
 #[derive(Component)]
 pub struct NoFrustumCulling;
@@ -130,38 +117,23 @@ pub fn update_frusta<T: Component + CameraProjection + Send + Sync + 'static>(
 
 pub fn check_visibility(
     mut view_query: Query<(&mut VisibleEntities, &Frustum, Option<&RenderLayers>), With<Camera>>,
-    mut visible_entity_query: QuerySet<(
-        QueryState<&mut ComputedVisibility>,
-        QueryState<
-            (
-                Entity,
-                &mut ComputedVisibility,
-                Option<&RenderLayers>,
-                Option<&Aabb>,
-                Option<&NoFrustumCulling>,
-                Option<&GlobalTransform>,
-            ),
-            With<Visible>,
-        >,
-    )>,
+    visible_entity_query: Query<
+        (
+            Entity,
+            Option<&RenderLayers>,
+            Option<&Aabb>,
+            Option<&NoFrustumCulling>,
+            Option<&GlobalTransform>,
+        ),
+        With<Visible>,
+    >,
 ) {
-    // Reset the computed visibility to false
-    for mut computed_visibility in visible_entity_query.q0().iter_mut() {
-        computed_visibility.is_visible = false;
-    }
-
     for (mut visible_entities, frustum, maybe_view_mask) in view_query.iter_mut() {
         visible_entities.entities.clear();
         let view_mask = maybe_view_mask.copied().unwrap_or_default();
 
-        for (
-            entity,
-            mut computed_visibility,
-            maybe_entity_mask,
-            maybe_aabb,
-            maybe_no_frustum_culling,
-            maybe_transform,
-        ) in visible_entity_query.q1().iter_mut()
+        for (entity, maybe_entity_mask, maybe_aabb, maybe_no_frustum_culling, maybe_transform) in
+            visible_entity_query.iter()
         {
             let entity_mask = maybe_entity_mask.copied().unwrap_or_default();
             if !view_mask.intersects(&entity_mask) {
@@ -176,8 +148,6 @@ pub fn check_visibility(
                     continue;
                 }
             }
-
-            computed_visibility.is_visible = true;
             visible_entities.entities.push(entity);
         }
 

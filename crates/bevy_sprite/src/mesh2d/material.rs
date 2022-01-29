@@ -24,7 +24,7 @@ use bevy_render::{
         SpecializedPipeline, SpecializedPipelines,
     },
     renderer::RenderDevice,
-    view::{ComputedVisibility, Msaa, Visible, VisibleEntities},
+    view::{Msaa, Visible, VisibleEntities},
     RenderApp, RenderStage,
 };
 use bevy_transform::components::{GlobalTransform, Transform};
@@ -327,8 +327,6 @@ pub struct MaterialMesh2dBundle<M: SpecializedMaterial2d> {
     pub global_transform: GlobalTransform,
     /// User indication of whether an entity is visible
     pub visible: Visible,
-    /// Algorithmically-computed indication of whether an entity is visible and should be extracted for rendering
-    pub computed_visibility: ComputedVisibility,
 }
 
 impl<M: SpecializedMaterial2d> Default for MaterialMesh2dBundle<M> {
@@ -339,7 +337,6 @@ impl<M: SpecializedMaterial2d> Default for MaterialMesh2dBundle<M> {
             transform: Default::default(),
             global_transform: Default::default(),
             visible: Default::default(),
-            computed_visibility: Default::default(),
         }
     }
 }
