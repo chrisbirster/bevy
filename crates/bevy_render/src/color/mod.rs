@@ -834,12 +834,8 @@ impl MulAssign<f32> for Color {
         match self {
             Color::Rgba {
                 red, green, blue, ..
-            } => {
-                *red *= rhs;
-                *green *= rhs;
-                *blue *= rhs;
             }
-            Color::RgbaLinear {
+            | Color::RgbaLinear {
                 red, green, blue, ..
             } => {
                 *red *= rhs;
@@ -910,13 +906,8 @@ impl MulAssign<Vec4> for Color {
                 green,
                 blue,
                 alpha,
-            } => {
-                *red *= rhs.x;
-                *green *= rhs.y;
-                *blue *= rhs.z;
-                *alpha *= rhs.w;
             }
-            Color::RgbaLinear {
+            | Color::RgbaLinear {
                 red,
                 green,
                 blue,
@@ -989,12 +980,8 @@ impl MulAssign<Vec3> for Color {
         match self {
             Color::Rgba {
                 red, green, blue, ..
-            } => {
-                *red *= rhs.x;
-                *green *= rhs.y;
-                *blue *= rhs.z;
             }
-            Color::RgbaLinear {
+            | Color::RgbaLinear {
                 red, green, blue, ..
             } => {
                 *red *= rhs.x;
@@ -1065,13 +1052,8 @@ impl MulAssign<[f32; 4]> for Color {
                 green,
                 blue,
                 alpha,
-            } => {
-                *red *= rhs[0];
-                *green *= rhs[1];
-                *blue *= rhs[2];
-                *alpha *= rhs[3];
             }
-            Color::RgbaLinear {
+            | Color::RgbaLinear {
                 red,
                 green,
                 blue,
@@ -1144,12 +1126,8 @@ impl MulAssign<[f32; 3]> for Color {
         match self {
             Color::Rgba {
                 red, green, blue, ..
-            } => {
-                *red *= rhs[0];
-                *green *= rhs[1];
-                *blue *= rhs[2];
             }
-            Color::RgbaLinear {
+            | Color::RgbaLinear {
                 red, green, blue, ..
             } => {
                 *red *= rhs[0];
